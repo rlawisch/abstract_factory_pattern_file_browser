@@ -87,14 +87,13 @@ class UnixCommander(CommanderFactory):
         self._run(['clear'])
 
     def list_directory(self, dir_path) -> None:
-        print(f"LS: {dir_path}")
         self._run([f'ls "{dir_path.as_posix()}" -la'])
 
     def copy_file(self, file_path: Path, destination: Path) -> None:
-        self._run(['cp', file_path.resolve(), destination.resolve()])
+        self._run([f'cp -u "{file_path.resolve()}" "{destination.resolve()}"'])
 
     def move_file(self, file_path: Path, destination: Path) -> None:
-        self._run(['mv', file_path.resolve(), destination.resolve()])
+        self._run([f'mv "{file_path.resolve()}" "{destination.resolve()}"'])
 
     def delete_file(self, file_path: Path) -> None:
-        self._run(['rm', file_path.resolve()])
+        self._run([f'rm "{file_path.resolve()}"'])
