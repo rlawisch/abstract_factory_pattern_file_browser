@@ -21,11 +21,16 @@ class CommanderFactory(metaclass=ABCMeta):
         subprocess.run(args, shell=True)
 
     @abstractmethod
+    def get_next_key_press(self) -> str:
+        pass
+
+    @abstractmethod
     def clear_screen(self) -> None:
         pass
 
+    @abstractmethod
     def list_directory(self, dir_path) -> None:
-        self._run(['ls', '-l', dir_path])
+        pass
 
     @abstractmethod
     def copy_file(self, file_path: Path, destination: Path) -> None:
@@ -41,8 +46,16 @@ class CommanderFactory(metaclass=ABCMeta):
 
 
 class WinNTCommander(CommanderFactory):
+    def get_next_key_press(self) -> str:
+        from msvcrt import getch
+
+        return getch().decode()
+
     def clear_screen(self) -> None:
         self._run(['cls'])
+
+    def list_directory(self, dir_path) -> None:
+        self._run(['ls', '-la', dir_path])
 
     def copy_file(self, file_path: Path, destination: Path) -> None:
         self._run(['copy', file_path.resolve(), destination.resolve()])
@@ -55,11 +68,30 @@ class WinNTCommander(CommanderFactory):
 
 
 class UnixCommander(CommanderFactory):
+    def get_next_key_press(self) -> str:
+        import termios
+        import tty
+        from sys import stdin
+
+        file_descriptor = stdin.fileno()
+        old_settings = termios.tcgetattr(file_descriptor)
+        tty.setraw(stdin.fileno())
+
+        read_char = stdin.read(1)
+
+        termios.tcsetattr(file_descriptor, termios.TCSADRAIN, old_settings)
+
+        return read_char
+
     def clear_screen(self) -> None:
         self._run(['clear'])
 
+    def list_directory(self, dir_path) -> None:
+        print(f"LS: {dir_path}")
+        self._run([f'ls "{dir_path.as_posix()}" -la'])
+
     def copy_file(self, file_path: Path, destination: Path) -> None:
-        self._run(['cp'. file_path.resolve(), destination.resolve()])
+        self._run(['cp', file_path.resolve(), destination.resolve()])
 
     def move_file(self, file_path: Path, destination: Path) -> None:
         self._run(['mv', file_path.resolve(), destination.resolve()])

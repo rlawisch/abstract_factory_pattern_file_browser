@@ -1,4 +1,3 @@
-from msvcrt import kbhit, getch
 from pathlib import Path
 
 from commander_factory import CommanderFactory
@@ -21,7 +20,8 @@ class FileBrowser:
         print("ESC - Quit")
 
     def __get_menu_option(self) -> str:
-        while not (kbhit() and (option := getch().decode()) in self.__options):
+        while (not (option := self.__commander.get_next_key_press())
+                in self.__options):
             pass
 
         return option
